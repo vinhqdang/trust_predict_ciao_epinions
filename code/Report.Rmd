@@ -2,7 +2,7 @@
 title: "Predicti rating and trust on Epinions and Ciao"
 author: "Vinh Dang"
 date: "4 February 2016"
-output: html_document
+output: pdf_document
 ---
 
 We present our method to predict rating and trust of users on two trust networks: [Epinions](www.epinions.com) and [Ciao](http://www.ciao.com/).
@@ -28,9 +28,14 @@ if (!require(lubridate)) {
   install.packages("lubridate", repos="http://cran.rstudio.com/")
 }
 
+if (!require(MBESS)) {
+  install.packages("MBESS", repos="http://cran.rstudio.com/")
+}
+
 library (R.matlab)
 library (h2o)
 library (lubridate)
+library (MBESS)
 ```
 
 *Note:* If you have problem with installing h2o on Ubuntu, you may refer to [this discussion](http://askubuntu.com/questions/359267/cannot-find-curl-config-in-ubuntu-13-04).
@@ -46,7 +51,13 @@ source("Process.R")
 ```
 
 
+### Epinions data
+```{r, echo=FALSE}
+rating_prediction ()
+```
+
+### Ciao data
 
 ```{r, echo=FALSE}
-
+rating_prediction (filename = "ciao_rating_with_timestamp.mat", time_point = FALSE)
 ```
