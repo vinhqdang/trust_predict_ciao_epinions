@@ -27,7 +27,7 @@ localH2O = h2o.init()
 
 h2o.data = as.h2o (all_data)
 
-h2o.dl = h2o.deeplearning(x=c(1:2,5:27), y = 4, training_frame = h2o.data, nfolds = 5)
+h2o.dl = h2o.deeplearning(x=c(1:2,5:27), y = 3, training_frame = h2o.data, nfolds = 5)
 
 h2o.dl
 
