@@ -101,7 +101,7 @@ trust_prediction = function (filename = "epinion_trust_with_timestamp.mat")
   h2o_trust_train = as.h2o (trust_train)
   h2o_trust_test = as.h2o (trust_test)
   
-  dnn = h2o.deeplearning(x=1:2,y=3,training_frame = h2o_trust_train, validation_frame = h2o_trust_test)
+  # dnn = h2o.deeplearning(x=1:2,y=3,training_frame = h2o_trust_train, validation_frame = h2o_trust_test)
   
   rating = readMat("epinions_rating_with_timestamp.mat")
   rating = rating$rating
