@@ -1,0 +1,6 @@
+wiki_rfa=read.csv("wiki_rfa_simple.txt",sep=";",header = TRUE)
+wiki_rfa$SRC = as.factor(wiki_rfa$SRC)
+wiki_rfa$TGT = as.factor(wiki_rfa$TGT)
+wiki_rfa$VOT = as.factor(wiki_rfa$VOT)
+wiki_rfa$RES = as.logical(wiki_rfa$RES)
+wiki_rfa$YEA = as.factor(wiki_rfa$YEA)
