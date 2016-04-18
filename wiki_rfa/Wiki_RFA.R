@@ -27,7 +27,7 @@ epoch = 10000
 rate = 0.0005
 
 dnn = h2o.deeplearning(x=c(1,2,4,5),y=3, 
-                             training_frame = as.h2o(data), 
+                             training_frame = data_h2o, 
                              nfolds = 5, rate = rate,
                              hidden = hidden,
                              epochs = epoch,
