@@ -18,6 +18,11 @@ indexes = sample(1:nrow(data), size = test_ratio * nrow(data))
 test = data[indexes,]
 train = data[-indexes,]
 
+x_train = train[,-3]
+y_train = train[,3]
+x_test = test[,-3]
+y_test = test[,3]
+
 data_h2o = as.h2o (data)
 train_h2o = as.h2o (train)
 test_h2o = as.h2o (test)
@@ -26,11 +31,23 @@ hidden = c(400,200,100)
 epoch = 10000
 rate = 0.0005
 
+# for voting
 dnn = h2o.deeplearning(x=c(1,2,4,5),y=3, 
-                             training_frame = data_h2o, 
+                             training_frame = as.h2o(wiki_rfa), 
                              nfolds = 5, rate = rate,
                              hidden = hidden,
                              epochs = epoch,
+                       train_samples_per_iteration = -1) 
+
+dnn
+
+# for election results
+
+dnn = h2o.deeplearning(x=c(1,2,3,5),y=4, 
+                       training_frame = as.h2o(wiki_rfa), 
+                       nfolds = 5, rate = rate,
+                       hidden = hidden,
+                       epochs = epoch,
                        train_samples_per_iteration = -1) 
 
 dnn
