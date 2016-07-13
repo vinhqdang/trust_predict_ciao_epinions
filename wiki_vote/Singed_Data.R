@@ -136,33 +136,34 @@ edge_embeddedness = function (filename = "soc-sign-epinions.txt")
 }
 
 # utility functions
-# count number of common friends of two neighbors
+# count neighborhood size of edges
 
-countCommonFriends = function (filename = "soc-sign-epinions.txt")
+countEdgeNeighborSize = function (filename = "soc-sign-epinions.txt")
 {
   data = read.table (filename, skip = 4, header = TRUE)
-  common_friends_count = c()
   
-  for (i in sort(unique(data$Trustor))) {
-    for (j in sort(unique(data$Trustee))) {
-      print (paste ("Processing trustor",i,"and trustee",j))
-      if (i == j) {
-        next
-      }
-      else {
-        count = 0
-        for (k in nrow(data)) {
-          # do not count the current processing line
-          if (data[k,]$Trustor != i | data[k,]$Trustee != j) {
-            if (data[k,]$Trustor == i | data[k,]$Trustor == j | data[k,]$Trustee == i | data[k,]$Trustee == j) {
-              count = count + 1
-            }
-          }
-        }
-        common_friends_count = c(common_friends_count, count)
-      }
-    }
+  library(igraph)
+  
+  #create igraph object from the data frame
+  g = graph.data.frame(d = data)
+  
+  # include neighborhood size of all edges
+  edge_neighborhood_size = c()
+  
+  for (i in 1:nrow(data)) {
+    print (paste("Processing element",i,"/",nrow(data)))
+    cur_line = data[i,]
+    
+    # plus 1 because igraph counts from 1 while the dataset starts from 0
+    cur_trustor = cur_line$Trustor + 1
+    cur_trustee = cur_line$Trustee + 1
+    
+    # minus 2 to remove 
+    cur_edge_neighborhood_size = 
+      length(union(neighbors(g, v = cur_trustor, mode = "all"),
+                   neighbors(g, v = cur_trustee, mode = "all")))
+    
+    edge_neighborhood_size = c (edge_neighborhood_size, cur_edge_neighborhood_size)
   }
-  
-  common_friends_count
+  edge_neighborhood_size
 }
