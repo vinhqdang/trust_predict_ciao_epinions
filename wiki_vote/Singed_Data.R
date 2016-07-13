@@ -119,3 +119,50 @@ processSubData = function (subdf, test_ratio = 0.1)
   
   acc1
 }
+
+# Embeddedness of an edge (link) is the number of nodes that are neighbors of the nodes of that edge. 
+edge_embeddedness = function (filename = "soc-sign-epinions.txt")
+{
+  data = read.table (filename, skip = 4, header = TRUE)
+  
+  library (igraph)
+  
+  g = make_empty_graph(n = max(max(data$Trustor), max(data$Trustee)) + 1)
+  
+  for (i in 1:nrow(data)) {
+    print (paste ("Processing edge number",i))
+    add_edges(graph = g, edges = c(data[i,]$Trustor + 1, data[i,]$Trustee + 1))
+  }
+}
+
+# utility functions
+# count number of common friends of two neighbors
+
+countCommonFriends = function (filename = "soc-sign-epinions.txt")
+{
+  data = read.table (filename, skip = 4, header = TRUE)
+  common_friends_count = c()
+  
+  for (i in sort(unique(data$Trustor))) {
+    for (j in sort(unique(data$Trustee))) {
+      print (paste ("Processing trustor",i,"and trustee",j))
+      if (i == j) {
+        next
+      }
+      else {
+        count = 0
+        for (k in nrow(data)) {
+          # do not count the current processing line
+          if (data[k,]$Trustor != i | data[k,]$Trustee != j) {
+            if (data[k,]$Trustor == i | data[k,]$Trustor == j | data[k,]$Trustee == i | data[k,]$Trustee == j) {
+              count = count + 1
+            }
+          }
+        }
+        common_friends_count = c(common_friends_count, count)
+      }
+    }
+  }
+  
+  common_friends_count
+}
