@@ -138,32 +138,78 @@ edge_embeddedness = function (filename = "soc-sign-epinions.txt")
 # utility functions
 # count neighborhood size of edges
 
-countEdgeNeighborSize = function (filename = "soc-sign-epinions.txt")
+countEdgeNeighborSize = function (filename = "soc-sign-epinions.txt", sample_ratio = 10, min_neighbor_size=0)
 {
   data = read.table (filename, skip = 4, header = TRUE)
   
-  library(igraph)
+  # library(igraph)
   
   #create igraph object from the data frame
-  g = graph.data.frame(d = data)
+  # g = graph.data.frame(d = data)
   
   # include neighborhood size of all edges
-  edge_neighborhood_size = c()
+  cover_size = c()
   
-  for (i in 1:nrow(data)) {
-    print (paste("Processing element",i,"/",nrow(data)))
+  count = 0
+  
+  for (i in sort(sample(nrow(data), nrow(data)/sample_ratio))) {
+    count = count + 1
+    print (paste("Processing element",count,"/",nrow(data)/sample_ratio))
     cur_line = data[i,]
     
     # plus 1 because igraph counts from 1 while the dataset starts from 0
-    cur_trustor = cur_line$Trustor + 1
-    cur_trustee = cur_line$Trustee + 1
+    cur_trustor = cur_line$Trustor
+    cur_trustee = cur_line$Trustee
     
-    # minus 2 to remove 
+    # minus 1 to remove the link itself
     cur_edge_neighborhood_size = 
-      length(union(neighbors(g, v = cur_trustor, mode = "all"),
-                   neighbors(g, v = cur_trustee, mode = "all")))
+      nrow (data[data$Trustor==cur_trustor | data$Trustee==cur_trustor | data$Trustor==cur_trustee | data$Trustee==cur_trustee,]) - 1
     
-    edge_neighborhood_size = c (edge_neighborhood_size, cur_edge_neighborhood_size)
+    if (cur_edge_neighborhood_size <= 1) {
+      print (paste("i=",i))
+      print (paste("trustor=",cur_trustor))
+      print (paste("trustee=",cur_trustee))
+      readkey()
+    }
+    
+    cover_size = c (cover_size, cur_edge_neighborhood_size)
   }
-  edge_neighborhood_size
+  
+  # plot 
+  x = cover_size[cover_size >= min_neighbor_size]
+  
+  
+  # percentage of edge size smaller than certain values
+  print (paste (length(x[x<=100])," is less than 100. the percentage is", length(x[x<=100]) / length(x)))
+  print (paste (length(x[x<=200])," is less than 200. the percentage is", length(x[x<=200]) / length(x)))
+  print (paste (length(x[x<=300])," is less than 300. the percentage is", length(x[x<=300]) / length(x)))
+  print (paste (length(x[x<=400])," is less than 400. the percentage is", length(x[x<=400]) / length(x)))
+  print (paste (length(x[x<=500])," is less than 500. the percentage is", length(x[x<=500]) / length(x)))
+  
+  hist_plot (x)
+  
+  cover_size
+}
+
+# histogram with log scale and percentage
+hist_plot = function (x) {
+  library (ggplot2)
+  
+  p_hist = ggplot() + aes(x)+ geom_histogram(aes(y = (..count..)/sum(..count..))) + scale_x_log10(breaks=c(5,10,100,1000)) + scale_y_continuous(labels = scales::percent) + labs (y = "Percentage", x = "Size of cover set at distance of 1") + theme(axis.text=element_text(size=44), axis.title=element_text(size=48,face="bold"))
+  print (p_hist)
+}
+
+# cumulative distribution function
+plot_cdf = function (x)
+{
+  dens = density (x)
+  cdf <- cumsum(dens$y * diff(dens$x[1:2]))
+  cdf <- cdf / max(cdf) # to correct for the rounding errors
+  plot(dens$x,cdf,type="s")
+}
+
+readkey <- function()
+{
+  cat ("Press [enter] to continue")
+  line <- readline()
 }
