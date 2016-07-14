@@ -2,6 +2,7 @@
 #search_len = 2 means looking to friends of friends also etc.
 processData = function (filename = "soc-sign-epinions.txt",nb_test = 20, test_ratio = 0.1, search_len = 1, min_subdata_size=200)
 {
+  
   library (rnn)
   data = read.table (filename, skip = 4, header = TRUE)
   data_len = nrow (data)
@@ -10,8 +11,11 @@ processData = function (filename = "soc-sign-epinions.txt",nb_test = 20, test_ra
   
   predict_accs = c()
   
+  processing_time = c()
+  
   count = 0
   while (count < nb_test) {
+    p1 = proc.time()
     i = sample (1:nrow(data),1)
     test_trustor = data[i,]$Trustor
     subData = data [data$Trustor == test_trustor | data$Trustee == test_trustor,]
@@ -37,12 +41,19 @@ processData = function (filename = "soc-sign-epinions.txt",nb_test = 20, test_ra
     predict_acc = processSubData(subData, test_ratio = test_ratio)
     predict_accs = c(predict_accs, predict_acc)
     print (paste ("Current average accuracy =", mean(predict_accs)))
+    
+    p2 = proc.time()
+    print (p2 - p1)
+    
+    processing_time = c(processing_time, (p2-p1))
+    print (paste ("Current average processing time =", mean(processing_time)))
   }
   
   print (paste ("Mean of accuracy = ", mean (predict_accs)))
   print (paste ("Standard deviation of accuracy =", sd (predict_accs)))
   
   predict_accs
+  
 }
 
 processSubData = function (subdf, test_ratio = 0.1)
@@ -165,12 +176,12 @@ countEdgeNeighborSize = function (filename = "soc-sign-epinions.txt", sample_rat
     cur_edge_neighborhood_size = 
       nrow (data[data$Trustor==cur_trustor | data$Trustee==cur_trustor | data$Trustor==cur_trustee | data$Trustee==cur_trustee,]) - 1
     
-    if (cur_edge_neighborhood_size <= 1) {
-      print (paste("i=",i))
-      print (paste("trustor=",cur_trustor))
-      print (paste("trustee=",cur_trustee))
-      readkey()
-    }
+#     if (cur_edge_neighborhood_size <= 1) {
+#       print (paste("i=",i))
+#       print (paste("trustor=",cur_trustor))
+#       print (paste("trustee=",cur_trustee))
+#       readkey()
+#     }
     
     cover_size = c (cover_size, cur_edge_neighborhood_size)
   }
@@ -180,11 +191,10 @@ countEdgeNeighborSize = function (filename = "soc-sign-epinions.txt", sample_rat
   
   
   # percentage of edge size smaller than certain values
-  print (paste (length(x[x<=100])," is less than 100. the percentage is", length(x[x<=100]) / length(x)))
-  print (paste (length(x[x<=200])," is less than 200. the percentage is", length(x[x<=200]) / length(x)))
-  print (paste (length(x[x<=300])," is less than 300. the percentage is", length(x[x<=300]) / length(x)))
-  print (paste (length(x[x<=400])," is less than 400. the percentage is", length(x[x<=400]) / length(x)))
-  print (paste (length(x[x<=500])," is less than 500. the percentage is", length(x[x<=500]) / length(x)))
+  for (i in 1:10) {
+    threshold = i * 100
+    print (paste (length(x[x<=threshold])," is less than",threshold, "the percentage is", length(x[x<=threshold]) / length(x)))
+  }
   
   hist_plot (x)
   
@@ -195,7 +205,7 @@ countEdgeNeighborSize = function (filename = "soc-sign-epinions.txt", sample_rat
 hist_plot = function (x) {
   library (ggplot2)
   
-  p_hist = ggplot() + aes(x)+ geom_histogram(aes(y = (..count..)/sum(..count..))) + scale_x_log10(breaks=c(5,10,100,1000)) + scale_y_continuous(labels = scales::percent) + labs (y = "Percentage", x = "Size of cover set at distance of 1") + theme(axis.text=element_text(size=44), axis.title=element_text(size=48,face="bold"))
+  p_hist = ggplot() + aes(x)+ geom_histogram(aes(y = (..count..)/sum(..count..))) + scale_x_log10(breaks=c(10,100,1000)) + scale_y_continuous(labels = scales::percent) + labs (y = "", x = "") + theme(axis.text=element_text(size=44), axis.title=element_text(size=48,face="bold"))
   print (p_hist)
 }
 
