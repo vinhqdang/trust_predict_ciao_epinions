@@ -317,4 +317,6 @@ Sign_dnn = function (filename = "soc-sign-epinions.txt", num_layers=2, max_categ
                          max_categorical_features = max_categorical_features)
   p2 = proc.time()
   proc_time = p2 - p1
+  print (proc_time)
+  dnn
 }
