@@ -292,13 +292,16 @@ fractionOfTriads = function(nbNodes, nbTriads) {
 
 
 # using DNN
-Sign_dnn = function (filename = "soc-sign-epinions.txt", num_layers=2)
+Sign_dnn = function (filename = "soc-sign-epinions.txt", num_layers=2, max_categorical_features = 1000)
 {
   data = read.table (filename, skip = 4, header = TRUE)
   data_len = nrow (data)
   data$Sign = as.factor(data$Sign)
   data$Trustor = as.factor(data$Trustor)
   data$Trustee = as.factor(data$Trustee)
-  
-  dnn = h2o.deeplearning(x = 1:2,y=3,training_frame = as.h2o(data), hidden = c(400,200), nfolds = 5)
+  p1 = proc.time()
+  dnn = h2o.deeplearning(x = 1:2,y=3,training_frame = as.h2o(data), hidden = c(400,200), nfolds = 5, 
+                         max_categorical_features = max_categorical_features)
+  p2 = proc.time()
+  proc_time = p2 - p1
 }
