@@ -132,18 +132,48 @@ processSubData = function (subdf, test_ratio = 0.1)
 }
 
 # Embeddedness of an edge (link) is the number of nodes that are neighbors of the nodes of that edge. 
-edge_embeddedness = function (filename = "soc-sign-epinions.txt")
+edge_embeddedness = function (filename = "soc-sign-epinions.txt", sample_ratio = 10)
 {
   data = read.table (filename, skip = 4, header = TRUE)
   
-  library (igraph)
+  edge_embeddedness = c()
   
-  g = make_empty_graph(n = max(max(data$Trustor), max(data$Trustee)) + 1)
+  count = 0
   
-  for (i in 1:nrow(data)) {
-    print (paste ("Processing edge number",i))
-    add_edges(graph = g, edges = c(data[i,]$Trustor + 1, data[i,]$Trustee + 1))
+  for (i in sort(sample(nrow(data), nrow(data)/sample_ratio))) {
+    count = count + 1
+    print (paste("Processing element",count,"/",nrow(data)/sample_ratio))
+    cur_line = data[i,]
+    
+    # plus 1 because igraph counts from 1 while the dataset starts from 0
+    cur_trustor = cur_line$Trustor
+    cur_trustee = cur_line$Trustee
+    
+    trustor_friends = c (data[data$Trustor==cur_trustor,]$Trustee, data[data$Trustee==cur_trustor,]$Trustor)
+    trustor_friends = trustor_friends[trustor_friends != cur_trustee]
+    trustee_friends = c (data[data$Trustor==cur_trustee,]$Trustee, data[data$Trustee==cur_trustee,]$Trustor)
+    trustee_friends = trustee_friends[trustee_friends != cur_trustor]
+    
+    common_friends = intersect(trustor_friends, trustee_friends)
+    
+    cur_edge_embeddedness = length(common_friends)
+    
+    edge_embeddedness = c (edge_embeddedness, cur_edge_embeddedness)
   }
+  
+  
+  
+  # plot 
+  x = edge_embeddedness
+  
+  for (threshold in c(5,10,25)) {
+    print (paste (length(x[x<=threshold])," is less than",threshold, "the percentage is", length(x[x<=threshold]) / length(x)))
+  }
+  library(plyr)
+  max_break = round_any(max(x), 50)
+  hist_plot (x, breaks = c(1,2,3,4,5,10,25, max_break))
+  
+  edge_embeddedness
 }
 
 # utility functions
@@ -196,16 +226,16 @@ countEdgeNeighborSize = function (filename = "soc-sign-epinions.txt", sample_rat
     print (paste (length(x[x<=threshold])," is less than",threshold, "the percentage is", length(x[x<=threshold]) / length(x)))
   }
   
-  hist_plot (x)
+  hist_plot (x, breaks = c(10,100,1000))
   
   cover_size
 }
 
 # histogram with log scale and percentage
-hist_plot = function (x) {
+hist_plot = function (x, breaks = c(10,100,1000)) {
   library (ggplot2)
   
-  p_hist = ggplot() + aes(x)+ geom_histogram(aes(y = (..count..)/sum(..count..))) + scale_x_log10(breaks=c(10,100,1000)) + scale_y_continuous(labels = scales::percent) + labs (y = "", x = "") + theme(axis.text=element_text(size=44), axis.title=element_text(size=48,face="bold"))
+  p_hist = ggplot() + aes(x)+ geom_histogram(aes(y = (..count..)/sum(..count..))) + scale_x_log10(breaks=breaks) + scale_y_continuous(labels = scales::percent) + labs (y = "", x = "") + theme(axis.text=element_text(size=44), axis.title=element_text(size=48,face="bold"))
   print (p_hist)
 }
 
@@ -222,4 +252,53 @@ readkey <- function()
 {
   cat ("Press [enter] to continue")
   line <- readline()
+}
+
+plotTrainingTime = function (process_epi, process_sla, process_wiki) {
+  plot (x, process_epi, type = "b", pch = 19, col = "red", xlab = "Training size", ylab = "Running time (seconds)", ylim = c(0,15))
+  lines(x, process_sla, pch = 18, type = "b", lty = 2, col = "blue")
+  lines(x, process_wiki, pch = 17, type = "b", lty = 3, col = "green")
+  legend(100, 15, legend=c("Epinions", "Slashdot", "Wikipedia"),col=c("red", "blue", "green"), lty=1:3, cex=0.8, pch = c(19,18,17))
+}
+
+plotTrainingTimeAsLayers = function (df) {
+  x = 1:4
+  plot (x, df[df$training_size==100,]$time, type = "b", pch = 19, col = "red",
+        xlab = "# of hidden layers", xaxt = "n", cex.lab=1.5, cex.axis=1.5,
+        ylab = "Running time (seconds)", ylim = c(0,max(df$time)+1))
+  axis(1,at=1:4,labels = 1:4)
+  lines(x, df[df$training_size==200,]$time, pch = 18, type = "b", lty = 2, col = "blue")
+  lines(x, df[df$training_size==300,]$time, pch = 17, type = "b", lty = 3, col = "darkcyan")
+  legend(1, max(df$time), legend=c("Training size = 100", "Training size = 200", "Training size = 300"),
+         col=c("red", "blue", "darkcyan"),
+         lty=1:4, cex=1.5, pch = 19:17)
+}
+
+comparePredictors = function(x_len, acc1, acc2) {
+  len1 = round (x_len * acc1)
+  len2 = round (x_len * acc2)
+  
+  x1 = c(rep(1, len1), rep(0, x_len-len1))
+  x2 = c(rep(1, len2), rep(0, x_len-len2))
+  
+  print (t.test(x1,x2))
+}
+
+
+# fraction of existing triads over possible triads
+fractionOfTriads = function(nbNodes, nbTriads) {
+  nbTriads / (nbNodes * (nbNodes-1) * (nbNodes - 2) / 6)
+}
+
+
+# using DNN
+Sign_dnn = function (filename = "soc-sign-epinions.txt", num_layers=2)
+{
+  data = read.table (filename, skip = 4, header = TRUE)
+  data_len = nrow (data)
+  data$Sign = as.factor(data$Sign)
+  data$Trustor = as.factor(data$Trustor)
+  data$Trustee = as.factor(data$Trustee)
+  
+  dnn = h2o.deeplearning(x = 1:2,y=3,training_frame = as.h2o(data), hidden = c(400,200), nfolds = 5)
 }
