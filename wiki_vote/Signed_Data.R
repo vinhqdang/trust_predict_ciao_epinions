@@ -1,6 +1,6 @@
 #search_len = 1 means looking to friends
 #search_len = 2 means looking to friends of friends also etc.
-processData = function (filename = "soc-sign-epinions.txt",nb_test = 20, test_ratio = 0.1, search_len = 1, min_subdata_size=200)
+processData = function (filename = "soc-sign-epinions.txt",nb_test = 20, test_ratio = 0.1, min_subdata_size=200)
 {
   
   library (rnn)
@@ -17,31 +17,44 @@ processData = function (filename = "soc-sign-epinions.txt",nb_test = 20, test_ra
   while (count < nb_test) {
     p1 = proc.time()
     i = sample (1:nrow(data),1)
-    test_trustor = data[i,]$Trustor
-    subData = data [data$Trustor == test_trustor | data$Trustee == test_trustor,]
     
-#     search_range = 1
-#     while (search_range < search_len) {
-#       subData = data [data$Trustor %in% subData$Trustor | data$Trustor %in% subData$Trustee |
-#                         data$Trustee %in% subData$Trustor | data$Trustee %in% subData$Trustee,]
-#       search_range = search_range + 14
-#     }
-    # subData$Sign = ifelse(subData$Sign == -1,0,1)
+    print ("Primary neighbor set")
+    cur_edge = data[i,]
+    seed_set = c(cur_edge$Trustor, cur_edge$Trustee)
+    
+    subData = data[(data$Trustor %in% seed_set & !data$Trustee %in% seed_set) |
+                     (data$Trustee %in% seed_set & !data$Trustor %in% seed_set) ,]
+    seed_set = union (union(seed_set, subData$Trustor), subData$Trustee)
     
     # remove neutral votes
     subData = subData[subData$Sign != 0,]
-    # print (nrow(subEpinions))
-    if (nrow(subData) <  min_subdata_size) {
+    
+    if (nrow(subData) > min_subdata_size) {
+      print ("Remove data from primary")
+      subData = subData[sample(nrow(subData), min_subdata_size), ]
+    }
+    while (nrow(subData) <  min_subdata_size) {
       print ("Adding data")
-      subData = data [data$Trustor %in% subData$Trustor | data$Trustor %in% subData$Trustee |
-                        data$Trustee %in% subData$Trustor | data$Trustee %in% subData$Trustee,]
-    }      
+      new_subData = data[(data$Trustor %in% seed_set & !data$Trustee %in% seed_set) |
+                       (data$Trustee %in% seed_set & !data$Trustor %in% seed_set) ,]
+      if (nrow(subData) + nrow(new_subData) <= min_subdata_size) {
+        subData = rbind(subData, new_subData)
+      }
+      else {
+        select_size = min_subdata_size - nrow(subData)
+        new_subData = new_subData[sample(nrow(new_subData), select_size), ]
+        subData = rbind(subData, new_subData)
+      }
+      seed_set = union (union(seed_set, subData$Trustor), subData$Trustee)
+      # remove neutral votes
+      subData = subData[subData$Sign != 0,]
+    }     
     count = count + 1
     print (paste ("Processing test number", count))
     predict_acc = processSubData(subData, test_ratio = test_ratio)
     predict_accs = c(predict_accs, predict_acc)
     print (paste ("Current average accuracy =", mean(predict_accs)))
-    
+#     
     p2 = proc.time()
     print (p2 - p1)
     
