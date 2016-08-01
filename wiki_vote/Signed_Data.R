@@ -312,11 +312,65 @@ Sign_dnn = function (filename = "soc-sign-epinions.txt", num_layers=2, max_categ
   data$Sign = as.factor(data$Sign)
   data$Trustor = as.factor(data$Trustor)
   data$Trustee = as.factor(data$Trustee)
+  
+  cur_nb_neurons = 400
+  hidden_layers = c(cur_nb_neurons)
+  cur_hidden_layer = 1
+  
+  while (cur_hidden_layer < num_layers) {
+    cur_hidden_layer = cur_hidden_layer + 1
+    cur_nb_neurons = cur_nb_neurons / 2
+    hidden_layers = c(hidden_layers, cur_nb_neurons)
+  }
+  
   p1 = proc.time()
-  dnn = h2o.deeplearning(x = 1:2,y=3,training_frame = as.h2o(data), hidden = c(400,200), nfolds = 5, 
+  dnn = h2o.deeplearning(x = 1:2,y=3,training_frame = as.h2o(data), hidden = hidden_layers, nfolds = 5, 
                          max_categorical_features = max_categorical_features)
   p2 = proc.time()
   proc_time = p2 - p1
   print (proc_time)
   dnn
+}
+
+process_auc = function (nb_edges, positive_ratio, accuracy) {
+  nb_positive = round (nb_edges * positive_ratio)
+  nb_negative = nb_edges - nb_positive
+  edges = c(rep(TRUE, nb_positive), rep (FALSE, nb_negative))
+  edges = sample(edges)
+  
+  nb_correct = round (nb_edges * accuracy)
+  nb_wrong = nb_edges - nb_correct
+  predicts = c(rep(TRUE, nb_correct), rep(FALSE, nb_wrong))
+  
+  predict_values = !xor (edges, predicts)
+  
+  # process AUC
+  library (ROCR)
+  predict_values = as.numeric(predict_values)
+  edges = as.numeric (edges)
+  
+  predict_values = sapply(predict_values, randomize)
+  pred = ROCR::prediction (predictions = predict_values, labels = edges)
+  perf = ROCR::performance(pred,"tpr","fpr")
+  
+  auc <- performance(pred,"auc")
+  auc <- unlist(slot(auc, "y.values"))
+  
+  print (paste("AUC=",round (auc,4)))
+  
+  # plot ROC
+  plot(perf,col=rainbow(10),lty=2, lwd=2, ylab = "TPR", xlab = "FPR")
+  
+  perf
+}
+
+randomize = function (x) {
+  r = runif (1,0.15,0.55)
+  if (x == 0) {
+    x = x + r
+  } 
+  else if (x == 1) {
+    x = x - r
+  }
+  x
 }
