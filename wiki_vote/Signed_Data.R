@@ -310,10 +310,10 @@ Sign_dnn = function (filename = "soc-sign-epinions.txt", num_layers=2, max_categ
   data = read.table (filename, skip = 4, header = TRUE)
   data_len = nrow (data)
   data$Sign = as.factor(data$Sign)
-  data$Trustor = as.factor(data$Trustor)
-  data$Trustee = as.factor(data$Trustee)
+#   data$Trustor = as.factor(data$Trustor)
+#   data$Trustee = as.factor(data$Trustee)
   
-  cur_nb_neurons = 400
+  cur_nb_neurons = 1024
   hidden_layers = c(cur_nb_neurons)
   cur_hidden_layer = 1
   
