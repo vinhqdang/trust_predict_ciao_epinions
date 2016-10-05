@@ -307,7 +307,7 @@ fractionOfTriads = function(nbNodes, nbTriads) {
 # using DNN
 Sign_dnn = function (filename = "soc-sign-epinions.txt", num_layers=2, 
                      max_categorical_features = 1000,
-                     nb_epochs = 20,
+                     nb_epochs = 500,
                      first_layer_size = 256,
                      factorize = TRUE)
 {
@@ -340,7 +340,9 @@ Sign_dnn = function (filename = "soc-sign-epinions.txt", num_layers=2,
                          max_categorical_features = max_categorical_features, epochs = nb_epochs,
                          balance_classes = TRUE,
                          stopping_metric = "misclassification",
-                         stopping_rounds = 500)
+                         stopping_rounds = 20,
+                         balance_classes = TRUE,
+                         export_weights_and_biases = TRUE)
   p2 = proc.time()
   proc_time = p2 - p1
   print (dnn)
