@@ -341,7 +341,6 @@ Sign_dnn = function (filename = "soc-sign-epinions.txt", num_layers=2,
                          balance_classes = TRUE,
                          stopping_metric = "misclassification",
                          stopping_rounds = 10,
-                         balance_classes = TRUE,
                          export_weights_and_biases = TRUE,
                          stopping_tolerance = 0.01)
   p2 = proc.time()
