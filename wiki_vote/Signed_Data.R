@@ -309,7 +309,8 @@ Sign_dnn = function (filename = "soc-sign-epinions.txt", num_layers=2,
                      max_categorical_features = 1000,
                      nb_epochs = 20,
                      learn_rate = 0.001,
-                     first_layer_size = 256)
+                     first_layer_size = 256,
+                     factorize = TRUE)
 {
   data = read.table (filename, skip = 4, header = TRUE)
   
@@ -319,8 +320,11 @@ Sign_dnn = function (filename = "soc-sign-epinions.txt", num_layers=2,
   
   data_len = nrow (data)
   data$Sign = as.factor(data$Sign)
-  data$Trustor = as.factor(data$Trustor)
-  data$Trustee = as.factor(data$Trustee)
+  
+  if (factorize == TRUE) {
+    data$Trustor = as.factor(data$Trustor)
+    data$Trustee = as.factor(data$Trustee)
+  }
   
   cur_nb_neurons = first_layer_size
   hidden_layers = c(cur_nb_neurons)
