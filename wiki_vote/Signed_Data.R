@@ -340,9 +340,10 @@ Sign_dnn = function (filename = "soc-sign-epinions.txt", num_layers=2,
                          max_categorical_features = max_categorical_features, epochs = nb_epochs,
                          balance_classes = TRUE,
                          stopping_metric = "misclassification",
-                         stopping_rounds = 20,
+                         stopping_rounds = 10,
                          balance_classes = TRUE,
-                         export_weights_and_biases = TRUE)
+                         export_weights_and_biases = TRUE,
+                         stopping_tolerance = 0.01)
   p2 = proc.time()
   proc_time = p2 - p1
   print (dnn)
