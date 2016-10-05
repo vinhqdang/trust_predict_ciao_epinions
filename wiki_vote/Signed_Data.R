@@ -308,7 +308,6 @@ fractionOfTriads = function(nbNodes, nbTriads) {
 Sign_dnn = function (filename = "soc-sign-epinions.txt", num_layers=2, 
                      max_categorical_features = 1000,
                      nb_epochs = 20,
-                     learn_rate = 0.001,
                      first_layer_size = 256,
                      factorize = TRUE)
 {
@@ -339,7 +338,7 @@ Sign_dnn = function (filename = "soc-sign-epinions.txt", num_layers=2,
   p1 = proc.time()
   dnn = h2o.deeplearning(x = 1:2,y=3,training_frame = as.h2o(data), hidden = hidden_layers, nfolds = 5, 
                          max_categorical_features = max_categorical_features, epochs = nb_epochs,
-                         balance_classes = TRUE, rate = learn_rate,
+                         balance_classes = TRUE,
                          stopping_metric = "misclassification",
                          stopping_rounds = 500)
   p2 = proc.time()
