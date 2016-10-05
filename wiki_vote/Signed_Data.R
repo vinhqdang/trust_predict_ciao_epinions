@@ -308,7 +308,8 @@ fractionOfTriads = function(nbNodes, nbTriads) {
 Sign_dnn = function (filename = "soc-sign-epinions.txt", num_layers=2, 
                      max_categorical_features = 1000,
                      nb_epochs = 20,
-                     learn_rate = 0.001)
+                     learn_rate = 0.001,
+                     first_layer_size = 256)
 {
   data = read.table (filename, skip = 4, header = TRUE)
   
@@ -321,7 +322,7 @@ Sign_dnn = function (filename = "soc-sign-epinions.txt", num_layers=2,
   data$Trustor = as.factor(data$Trustor)
   data$Trustee = as.factor(data$Trustee)
   
-  cur_nb_neurons = 1024
+  cur_nb_neurons = first_layer_size
   hidden_layers = c(cur_nb_neurons)
   cur_hidden_layer = 1
   
