@@ -305,13 +305,21 @@ fractionOfTriads = function(nbNodes, nbTriads) {
 
 
 # using DNN
-Sign_dnn = function (filename = "soc-sign-epinions.txt", num_layers=2, max_categorical_features = 1000)
+Sign_dnn = function (filename = "soc-sign-epinions.txt", num_layers=2, 
+                     max_categorical_features = 1000,
+                     nb_epochs = 20,
+                     learn_rate = 0.001)
 {
   data = read.table (filename, skip = 4, header = TRUE)
+  
+  if (filename == "wiki_rfa_user_id.txt") {
+    data = data[data$Sign != 0,]
+  }
+  
   data_len = nrow (data)
   data$Sign = as.factor(data$Sign)
-#   data$Trustor = as.factor(data$Trustor)
-#   data$Trustee = as.factor(data$Trustee)
+  data$Trustor = as.factor(data$Trustor)
+  data$Trustee = as.factor(data$Trustee)
   
   cur_nb_neurons = 1024
   hidden_layers = c(cur_nb_neurons)
@@ -325,9 +333,13 @@ Sign_dnn = function (filename = "soc-sign-epinions.txt", num_layers=2, max_categ
   
   p1 = proc.time()
   dnn = h2o.deeplearning(x = 1:2,y=3,training_frame = as.h2o(data), hidden = hidden_layers, nfolds = 5, 
-                         max_categorical_features = max_categorical_features)
+                         max_categorical_features = max_categorical_features, epochs = nb_epochs,
+                         balance_classes = TRUE, rate = learn_rate,
+                         stopping_metric = "misclassification",
+                         stopping_rounds = 500)
   p2 = proc.time()
   proc_time = p2 - p1
+  print (dnn)
   print (proc_time)
   dnn
 }
