@@ -331,12 +331,12 @@ Sign_dnn = function (filename = "soc-sign-epinions.txt", num_layers=2,
   
   while (cur_hidden_layer < num_layers) {
     cur_hidden_layer = cur_hidden_layer + 1
-    cur_nb_neurons = cur_nb_neurons / 2
+    cur_nb_neurons = cur_nb_neurons / 1
     hidden_layers = c(hidden_layers, cur_nb_neurons)
   }
   
   p1 = proc.time()
-  dnn = h2o.deeplearning(x = 1:2,y=3,training_frame = as.h2o(data), hidden = hidden_layers, nfolds = 5, 
+  dnn = h2o.deeplearning(x = 1:2,y=3,training_frame = as.h2o(data), hidden = hidden_layers, nfolds = 10, 
                          max_categorical_features = max_categorical_features, epochs = nb_epochs,
                          balance_classes = TRUE,
                          stopping_metric = "misclassification",
