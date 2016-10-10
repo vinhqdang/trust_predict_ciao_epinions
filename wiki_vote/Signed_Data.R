@@ -329,7 +329,7 @@ Sign_dnn = function (filename = "soc-sign-epinions.txt", num_layers=2,
   
   while (cur_hidden_layer < num_layers) {
     cur_hidden_layer = cur_hidden_layer + 1
-    cur_nb_neurons = cur_nb_neurons / 1
+    cur_nb_neurons = cur_nb_neurons / nb_layer_decay
     hidden_layers = c(hidden_layers, cur_nb_neurons)
   }
   
@@ -339,7 +339,7 @@ Sign_dnn = function (filename = "soc-sign-epinions.txt", num_layers=2,
                          balance_classes = TRUE,
                          stopping_metric = "misclassification",
                          stopping_rounds = 10,
-                         export_weights_and_biases = TRUE,
+                         # export_weights_and_biases = TRUE,
                          stopping_tolerance = 0.01)
   p2 = proc.time()
   proc_time = p2 - p1
