@@ -320,10 +320,9 @@ Sign_dnn = function (filename = "soc-sign-epinions.txt", num_layers=2,
   data_len = nrow (data)
   data$Sign = as.factor(data$Sign)
   
-  if (factorize == TRUE) {
-    data$Trustor = as.factor(data$Trustor)
-    data$Trustee = as.factor(data$Trustee)
-  }
+  data$Trustor = as.factor(data$Trustor)
+  data$Trustee = as.factor(data$Trustee)
+  
   
   cur_nb_neurons = first_layer_size
   hidden_layers = c(cur_nb_neurons)
