@@ -309,7 +309,7 @@ Sign_dnn = function (filename = "soc-sign-epinions.txt", num_layers=2,
                      max_categorical_features = 1000,
                      nb_epochs = 500,
                      first_layer_size = 256,
-                     factorize = TRUE)
+                     nb_layer_decay=2)  # how to set nb of neurons each layer is decreased
 {
   data = read.table (filename, skip = 4, header = TRUE)
   
@@ -322,7 +322,6 @@ Sign_dnn = function (filename = "soc-sign-epinions.txt", num_layers=2,
   
   data$Trustor = as.factor(data$Trustor)
   data$Trustee = as.factor(data$Trustee)
-  
   
   cur_nb_neurons = first_layer_size
   hidden_layers = c(cur_nb_neurons)
