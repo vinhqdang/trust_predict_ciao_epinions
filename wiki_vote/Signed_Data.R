@@ -309,7 +309,9 @@ Sign_dnn = function (filename = "soc-sign-epinions.txt", num_layers=2,
                      max_categorical_features = 1000,
                      nb_epochs = 500,
                      first_layer_size = 256,
-                     nb_layer_decay=2)  # how to set nb of neurons each layer is decreased
+                     nb_layer_decay=2,  # how to set nb of neurons each layer is decreased
+                     nfolds = 5
+                    )
 {
   data = read.table (filename, skip = 4, header = TRUE)
   
@@ -333,21 +335,47 @@ Sign_dnn = function (filename = "soc-sign-epinions.txt", num_layers=2,
     hidden_layers = c(hidden_layers, cur_nb_neurons)
   }
   
-  p1 = proc.time()
-  dnn = h2o.deeplearning(x = 1:2,y=3,training_frame = as.h2o(data), hidden = hidden_layers, nfolds = 10, 
-                         max_categorical_features = max_categorical_features, epochs = nb_epochs,
-                         balance_classes = TRUE,
-                         stopping_metric = "misclassification",
-                         stopping_rounds = 10,
-                         # export_weights_and_biases = TRUE,
-                         stopping_tolerance = 0.01,
-                         activation = "RectifierWithDropout"
-                         )
-  p2 = proc.time()
-  proc_time = p2 - p1
-  print (dnn)
-  print (proc_time)
-  dnn
+  if (nfolds > 0) {
+    p1 = proc.time()
+    dnn = h2o.deeplearning(x = 1:2,y=3,training_frame = as.h2o(data), hidden = hidden_layers, nfolds = nfolds, 
+                           max_categorical_features = max_categorical_features, epochs = nb_epochs,
+                           balance_classes = TRUE,
+                           stopping_metric = "misclassification",
+                           stopping_rounds = 10,
+                           # export_weights_and_biases = TRUE,
+                           stopping_tolerance = 0.01,
+                           activation = "RectifierWithDropout"
+    )
+    p2 = proc.time()
+    proc_time = p2 - p1
+    print (dnn)
+    print (proc_time)
+    dnn
+  }
+  else if (nfolds = 0) {
+    p1 = proc.time()
+    data = as.h2o (data)
+    data.split = h2o.splitFrame(data=data, ratios=0.9)
+    train = data.split[[1]]
+    test = data.split[[2]]
+    dnn = h2o.deeplearning(x = 1:2,y=3,training_frame = train, hidden = hidden_layers, validation_frame = test,
+                           max_categorical_features = max_categorical_features, epochs = nb_epochs,
+                           balance_classes = TRUE,
+                           stopping_metric = "misclassification",
+                           stopping_rounds = 10,
+                           # export_weights_and_biases = TRUE,
+                           stopping_tolerance = 0.01,
+                           activation = "RectifierWithDropout"
+                        )
+    p2 = proc.time()
+    proc_time = p2 - p1
+    print (dnn)
+    print (proc_time)
+    
+    # Plot the model
+    plot (dnn)
+    dnn
+  }
 }
 
 process_auc = function (nb_edges, positive_ratio, accuracy) {
