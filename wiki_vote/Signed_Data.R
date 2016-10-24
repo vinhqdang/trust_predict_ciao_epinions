@@ -340,7 +340,9 @@ Sign_dnn = function (filename = "soc-sign-epinions.txt", num_layers=2,
                          stopping_metric = "misclassification",
                          stopping_rounds = 10,
                          # export_weights_and_biases = TRUE,
-                         stopping_tolerance = 0.01)
+                         stopping_tolerance = 0.01,
+                         activation = "RectifierWithDropout"
+                         )
   p2 = proc.time()
   proc_time = p2 - p1
   print (dnn)
