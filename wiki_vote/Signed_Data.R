@@ -352,7 +352,7 @@ Sign_dnn = function (filename = "soc-sign-epinions.txt", num_layers=2,
     print (proc_time)
     dnn
   }
-  else if (nfolds = 0) {
+  else if (nfolds == 0) {
     p1 = proc.time()
     data = as.h2o (data)
     data.split = h2o.splitFrame(data=data, ratios=0.9)
