@@ -61,6 +61,7 @@ rating_prediction = function(filename = "epinions_rating_with_timestamp.mat", ti
     
     print ("All data")
     dnn = h2o.deeplearning(x=c(1:3,5:6),y=4, training_frame = train_rating_h2o, 
+                           activation = "RectifierWithDropout",
                            validation_frame = test_rating_h2o,
                            hidden = hiddens,
                            epochs = epochs,
@@ -118,6 +119,7 @@ rating_prediction = function(filename = "epinions_rating_with_timestamp.mat", ti
     
     dnn = h2o.deeplearning(x=c(1:3,5:6),y=4,
                            training_frame = rating_h2o, nfolds = nrow(rating), hidden = hiddens,
+                           activation = "RectifierWithDropout",
                            epochs = epochs,
                            rate = 0.001,
                            hidden_dropout_ratios = rep(0.5, length(hiddens)))
