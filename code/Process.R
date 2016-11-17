@@ -56,7 +56,9 @@ rating_prediction = function(filename = "epinions_rating_with_timestamp.mat", ti
     dnn = h2o.deeplearning(x=c(1:3,5:6),y=4, training_frame = train_rating_h2o, 
                            validation_frame = test_rating_h2o,
                            hidden = hiddens,
-                           epochs = epochs)
+                           epochs = epochs,
+                           learning_rate = 0.001,
+                           hidden_dropout_ratios = rep(0.5, len(hiddens)))
     
     rmse_value = sqrt(dnn@model$validation_metrics@metrics$MSE)
     
