@@ -58,7 +58,7 @@ rating_prediction = function(filename = "epinions_rating_with_timestamp.mat", ti
                            hidden = hiddens,
                            epochs = epochs,
                            rate = 0.001,
-                           hidden_dropout_ratios = rep(0.5, len(hiddens)))
+                           hidden_dropout_ratios = rep(0.5, length(hiddens)))
     
     rmse_value = sqrt(dnn@model$validation_metrics@metrics$MSE)
     
