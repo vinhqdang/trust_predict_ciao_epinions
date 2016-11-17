@@ -25,11 +25,15 @@ convert_time_stamp = function(time_stamp)
 # time_point: TRUE if timestamp is already converted to 1..11
 # evaluation_method = "division" (use 10 parts for train and 1 for test), "LOO" (leave one out)
 # testing_periods: periods will be in test, other will be used for training
+# max_mem_size: use to configure h2o server, maybe changed based on your computer
+# nthreads: use to configure h2o, -1 means all possible CPU cores
 rating_prediction = function(filename = "epinions_rating_with_timestamp.mat", time_point = TRUE, 
                              hiddens = c(200,200),
                              epochs = 100,
                              evaluation_method = "division",
-                             testing_periods = c(11))
+                             testing_periods = c(11),
+                             max_mem_size = "8g",
+                             nthread = 0)
 {
   rating = readMat(filename)
   rating = rating$rating
@@ -50,7 +54,7 @@ rating_prediction = function(filename = "epinions_rating_with_timestamp.mat", ti
     train_rating = rating [!rating$Timestamp %in% testing_periods,]
     test_rating = rating [rating$Timestamp %in% testing_periods,]
     
-    localH20 = h2o.init(nthreads = -1)
+    localH20 = h2o.init(nthreads = nthread, max_mem_size = max_mem_size)
     
     train_rating_h2o = as.h2o (train_rating)
     test_rating_h2o = as.h2o (test_rating)
@@ -114,7 +118,9 @@ rating_prediction = function(filename = "epinions_rating_with_timestamp.mat", ti
     
     dnn = h2o.deeplearning(x=c(1:3,5:6),y=4,
                            training_frame = rating_h2o, nfolds = nrow(rating), hidden = hiddens,
-                           epochs = epochs)
+                           epochs = epochs,
+                           rate = 0.001,
+                           hidden_dropout_ratios = rep(0.5, length(hiddens)))
     
     rmse_value = sqrt(dnn@model$validation_metrics@metrics$MSE)
     
