@@ -57,7 +57,7 @@ rating_prediction = function(filename = "epinions_rating_with_timestamp.mat", ti
                            validation_frame = test_rating_h2o,
                            hidden = hiddens,
                            epochs = epochs,
-                           learning_rate = 0.001,
+                           rate = 0.001,
                            hidden_dropout_ratios = rep(0.5, len(hiddens)))
     
     rmse_value = sqrt(dnn@model$validation_metrics@metrics$MSE)
