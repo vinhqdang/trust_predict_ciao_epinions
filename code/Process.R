@@ -21,10 +21,12 @@ convert_time_stamp = function(time_stamp)
 
 # time_point: TRUE if timestamp is already converted to 1..11
 # evaluation_method = "division" (use 10 parts for train and 1 for test), "LOO" (leave one out)
+# testing_periods: periods will be in test, other will be used for training
 rating_prediction = function(filename = "epinions_rating_with_timestamp.mat", time_point = TRUE, 
                              hiddens = c(200,200),
                              epochs = 100,
-                             evaluation_method = "division")
+                             evaluation_method = "division",
+                             testing_periods = c(11))
 {
   rating = readMat(filename)
   rating = rating$rating
@@ -42,8 +44,8 @@ rating_prediction = function(filename = "epinions_rating_with_timestamp.mat", ti
   }
   
   if (evaluation_method == "division") {
-    train_rating = rating [rating$Timestamp != 11,]
-    test_rating = rating [rating$Timestamp == 11,]
+    train_rating = rating [!rating$Timestamp %in% testing_periods,]
+    test_rating = rating [rating$Timestamp %in% testing_periods,]
     
     localH20 = h2o.init(nthreads = -1)
     
