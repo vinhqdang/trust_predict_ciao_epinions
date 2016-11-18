@@ -126,7 +126,9 @@ rating_prediction = function(filename = "epinions_rating_with_timestamp.mat", ti
     # print (ci.rmsea(rmsea = rmse_value, df = nrow(rating_old) - 1, N = nrow(rating_old)))
     print (rmse_value)
     
-    h2o.shutdown(prompt = FALSE)
+    dnn
+    
+    # h2o.shutdown(prompt = FALSE)
   }
   
   if (evaluation_method == "LOO") {
@@ -150,7 +152,9 @@ rating_prediction = function(filename = "epinions_rating_with_timestamp.mat", ti
     
     print (rmse_value)
     
-    h2o.shutdown(prompt = FALSE)
+    
+    dnn
+    # h2o.shutdown(prompt = FALSE)
   }
 }
 
