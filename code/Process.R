@@ -27,13 +27,19 @@ convert_time_stamp = function(time_stamp)
 # testing_periods: periods will be in test, other will be used for training
 # max_mem_size: use to configure h2o server, maybe changed based on your computer
 # nthreads: use to configure h2o, -1 means all possible CPU cores
+# l1, l2: regularization 
 rating_prediction = function(filename = "epinions_rating_with_timestamp.mat", time_point = TRUE, 
                              hiddens = c(200,200),
                              epochs = 100,
                              evaluation_method = "division",
                              testing_periods = c(11),
                              max_mem_size = "8g",
-                             nthread = 0)
+                             nthread = 0,
+                             learning_rate=0.001,
+                             activation_func="RectifierWithDropout",
+                             dropout_ratio = 0.5,
+                             l1 = 0.00001,
+                             l2 = 1e-5)
 {
   rating = readMat(filename)
   rating = rating$rating
@@ -61,12 +67,14 @@ rating_prediction = function(filename = "epinions_rating_with_timestamp.mat", ti
     
     print ("All data")
     dnn = h2o.deeplearning(x=c(1:3,5:6),y=4, training_frame = train_rating_h2o, 
-                           activation = "RectifierWithDropout",
+                           activation = activation_func,
                            validation_frame = test_rating_h2o,
                            hidden = hiddens,
                            epochs = epochs,
-                           rate = 0.001,
-                           hidden_dropout_ratios = rep(0.5, length(hiddens)))
+                           rate = learning_rate,
+                           hidden_dropout_ratios = rep(dropout_ratio, length(hiddens)),
+                           l1 = l1,
+                           l2 = l2)
     
     rmse_value = sqrt(dnn@model$validation_metrics@metrics$MSE)
     
@@ -119,10 +127,12 @@ rating_prediction = function(filename = "epinions_rating_with_timestamp.mat", ti
     
     dnn = h2o.deeplearning(x=c(1:3,5:6),y=4,
                            training_frame = rating_h2o, nfolds = nrow(rating), hidden = hiddens,
-                           activation = "RectifierWithDropout",
+                           activation = activation_func,
                            epochs = epochs,
-                           rate = 0.001,
-                           hidden_dropout_ratios = rep(0.5, length(hiddens)))
+                           rate = learning_rate,
+                           hidden_dropout_ratios = rep(dropout_ratio, length(hiddens)),
+                           l1 = l1,
+                           l2 = l2)
     
     rmse_value = sqrt(dnn@model$validation_metrics@metrics$MSE)
     
