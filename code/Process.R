@@ -40,7 +40,10 @@ rating_prediction = function(filename = "epinions_rating_with_timestamp.mat", ti
                              dropout_ratio = 0.5,
                              l1 = 0.00001,
                              l2 = 1e-5,
-                             initial_weight_distribution="Uniform")
+                             initial_weight_distribution="Uniform",
+                             regression_stop = 1,
+                             stopping_metric="MSE",
+                             stopping_tolerance="0.02")
 {
   rating = readMat(filename)
   rating = rating$rating
@@ -76,7 +79,10 @@ rating_prediction = function(filename = "epinions_rating_with_timestamp.mat", ti
                            hidden_dropout_ratios = rep(dropout_ratio, length(hiddens)),
                            l1 = l1,
                            l2 = l2,
-                           initial_weight_distribution=initial_weight_distribution)
+                           initial_weight_distribution=initial_weight_distribution,
+                           regression_stop = regression_stop,
+                           stopping_metric = stopping_metric,
+                           stopping_rounds = regression_stop)
     
     rmse_value = sqrt(dnn@model$validation_metrics@metrics$MSE)
     
@@ -135,7 +141,10 @@ rating_prediction = function(filename = "epinions_rating_with_timestamp.mat", ti
                            hidden_dropout_ratios = rep(dropout_ratio, length(hiddens)),
                            l1 = l1,
                            l2 = l2,
-                           initial_weight_distribution=initial_weight_distribution)
+                           initial_weight_distribution=initial_weight_distribution,
+                           regression_stop = regression_stop,
+                           stopping_metric = stopping_metric,
+                           stopping_rounds = regression_stop)
     
     rmse_value = sqrt(dnn@model$validation_metrics@metrics$MSE)
     
