@@ -28,10 +28,12 @@ convert_time_stamp = function(time_stamp)
 # max_mem_size: use to configure h2o server, maybe changed based on your computer
 # nthreads: use to configure h2o, -1 means all possible CPU cores
 # l1, l2: regularization 
+# only use for cross-valdiation
 rating_prediction = function(filename = "epinions_rating_with_timestamp.mat", time_point = TRUE, 
                              hiddens = c(200,200),
                              epochs = 100,
                              evaluation_method = "division",
+                             training_periods = 1:10,
                              testing_periods = c(11),
                              max_mem_size = "8g",
                              nthread = 0,
@@ -43,7 +45,8 @@ rating_prediction = function(filename = "epinions_rating_with_timestamp.mat", ti
                              initial_weight_distribution="Uniform",
                              regression_stop = 1,
                              stopping_metric="MSE",
-                             stopping_tolerance="0.02")
+                             stopping_tolerance="0.02",
+                             nfold = 5)
 {
   rating = readMat(filename)
   rating = rating$rating
@@ -61,7 +64,7 @@ rating_prediction = function(filename = "epinions_rating_with_timestamp.mat", ti
   }
   
   if (evaluation_method == "division") {
-    train_rating = rating [!rating$Timestamp %in% testing_periods,]
+    train_rating = rating [rating$Timestamp %in% training_periods,]
     test_rating = rating [rating$Timestamp %in% testing_periods,]
     
     localH20 = h2o.init(nthreads = nthread, max_mem_size = max_mem_size)
@@ -136,7 +139,7 @@ rating_prediction = function(filename = "epinions_rating_with_timestamp.mat", ti
     rating_h2o = as.h2o (rating)
     
     dnn = h2o.deeplearning(x=c(1:3,5:6),y=4,
-                           training_frame = rating_h2o, nfolds = nrow(rating), hidden = hiddens,
+                           training_frame = rating_h2o, nfolds = nfold, hidden = hiddens,
                            activation = activation_func,
                            epochs = epochs,
                            rate = learning_rate,
