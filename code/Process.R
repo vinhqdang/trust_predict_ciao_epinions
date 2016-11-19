@@ -131,7 +131,9 @@ rating_prediction = function(filename = "epinions_rating_with_timestamp.mat", ti
     # print (ci.rmsea(rmsea = rmse_value, df = nrow(rating_old) - 1, N = nrow(rating_old)))
     print (rmse_value)
     
-    dnn
+    png ("plot.png")
+    plot (dnn)
+    dev.off()
     
     # h2o.shutdown(prompt = FALSE)
   }
@@ -158,8 +160,9 @@ rating_prediction = function(filename = "epinions_rating_with_timestamp.mat", ti
     
     print (rmse_value)
     
-    
-    dnn
+    png ("plot.png")
+    plot (dnn)
+    dev.off()
     # h2o.shutdown(prompt = FALSE)
   }
 }
