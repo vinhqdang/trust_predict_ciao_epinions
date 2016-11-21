@@ -114,7 +114,7 @@ rating_prediction = function(filename = "epinions_rating_with_timestamp.mat", ti
     print (rmse_value)
     
     # Contain product which are already rated before
-    rating_old = test_rating[test_rating$Product %in% train_rating$Product & test_rating$User %in% train_rating$Use,]
+    rating_old = test_rating[test_rating$Product %in% train_rating$Product & test_rating$User %in% train_rating$User,]
     h2o_rate_old = as.h2o (rating_old)
     
     #   dnn = h2o.deeplearning(x=c(1:3,5:6),y=4, training_frame = train_rating_h2o, 
