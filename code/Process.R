@@ -31,7 +31,6 @@ convert_time_stamp = function(time_stamp)
 # only use for cross-valdiation
 rating_prediction = function(filename = "epinions_rating_with_timestamp.mat", time_point = TRUE, 
                              hiddens = c(200,200),
-                             epochs = 100,
                              evaluation_method = "division",
                              training_periods = 1:10,
                              testing_periods = c(11),
@@ -68,6 +67,16 @@ rating_prediction = function(filename = "epinions_rating_with_timestamp.mat", ti
     train_rating = rating [rating$Timestamp %in% training_periods,]
     test_rating = rating [rating$Timestamp %in% testing_periods,]
     
+    # require (plotrix)
+    # multhist(list (train_rating$Rating, test_rating$Rating), 
+    # breaks=seq(0.5,5.5,by=1),probability=TRUE, ylab="Proportion",
+    # xlab = "Rating score of train (black) and test (grey) data set.")
+    
+    # for 11 time frames in 1 plot
+    # for (i in 1:11) {l[[i]] = rating[rating$Timestamp==i,]$Rating}
+    # multhist(l, breaks=seq(0.5,5.5,by=1),probability=TRUE, 
+    # ylab="Proportion",xlab = "Rating score over 11 time frames")
+    
     localH20 = h2o.init(nthreads = nthread, max_mem_size = max_mem_size)
     
     train_rating_h2o = as.h2o (train_rating)
@@ -78,7 +87,7 @@ rating_prediction = function(filename = "epinions_rating_with_timestamp.mat", ti
                            activation = activation_func,
                            validation_frame = test_rating_h2o,
                            hidden = hiddens,
-                           epochs = epochs,
+                           epochs = nb_epoch,
                            rate = learning_rate,
                            hidden_dropout_ratios = rep(dropout_ratio, length(hiddens)),
                            l1 = l1,
@@ -96,15 +105,9 @@ rating_prediction = function(filename = "epinions_rating_with_timestamp.mat", ti
     
     
     # Product never been rated
-    rating_new = test_rating[! (test_rating$Product %in% train_rating$Product & test_rating$User %in% train_rating$User),]
+    rating_new = test_rating[! (test_rating$Product %in% train_rating$Product 
+                                & test_rating$User %in% train_rating$User),]
     h2o_rate_new = as.h2o (rating_new)
-    
-    #   dnn = h2o.deeplearning(x=c(1:3,5:6),y=4, training_frame = train_rating_h2o, 
-    #                          validation_frame = h2o_rate_new,
-    #                          hidden = hiddens,
-    #                          epochs = epochs)
-    #   print ("Cold start problem")
-    #   print (sqrt(dnn@model$validation_metrics@metrics$MSE)) # 1.006675
     
     print ("Cold start prediction")
     p_new = h2o.predict(dnn, newdata = h2o_rate_new)
@@ -114,13 +117,23 @@ rating_prediction = function(filename = "epinions_rating_with_timestamp.mat", ti
     print (rmse_value)
     
     # Contain product which are already rated before
-    rating_old = test_rating[test_rating$Product %in% train_rating$Product & test_rating$User %in% train_rating$User,]
+    rating_old = test_rating[test_rating$Product %in% train_rating$Product 
+                             & test_rating$User %in% train_rating$User,]
     h2o_rate_old = as.h2o (rating_old)
     
-    #   dnn = h2o.deeplearning(x=c(1:3,5:6),y=4, training_frame = train_rating_h2o, 
-    #                          validation_frame = h2o_rate_old,
-    #                          hidden = hiddens,
-    #                          epochs = epochs)
+    # only new item
+    rating_new_item = test_rating[! (test_rating$Product %in% train_rating$Product),]
+    print ("Only new items")
+    h2o_rate_new_item = as.h2o (rating_new_item)
+    p_new = h2o.predict(dnn, newdata = h2o_rate_new_item)
+    rmse_value = hydroGOF::rmse(as.vector(rating_new_item$Rating), as.vector(p_new))
+    
+    # only new user
+    rating_new_user = test_rating[! (test_rating$User %in% train_rating$User),]
+    print ("Only new users")
+    h2o_rate_new_item = as.h2o (rating_new_user)
+    p_new = h2o.predict(dnn, newdata = rating_new_user)
+    rmse_value = hydroGOF::rmse(as.vector(rating_new_user$Rating), as.vector(p_new))
     
     print ("Existing product and users rating prediction")
     # print (sqrt(dnn@model$validation_metrics@metrics$MSE)) 
@@ -144,7 +157,7 @@ rating_prediction = function(filename = "epinions_rating_with_timestamp.mat", ti
     dnn = h2o.deeplearning(x=c(1:3,5:6),y=4,
                            training_frame = rating_h2o, nfolds = nfold, hidden = hiddens,
                            activation = activation_func,
-                           epochs = epochs,
+                           epochs = nb_epoch,
                            rate = learning_rate,
                            hidden_dropout_ratios = rep(dropout_ratio, length(hiddens)),
                            l1 = l1,
