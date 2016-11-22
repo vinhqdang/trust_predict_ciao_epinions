@@ -42,9 +42,10 @@ rating_prediction = function(filename = "epinions_rating_with_timestamp.mat", ti
                              l1 = 0.00001,
                              l2 = 1e-5,
                              initial_weight_distribution="Uniform",
-                             regression_stop = 1,
+                             regression_stop = 0.01,
                              stopping_metric="MSE",
                              stopping_tolerance="0.02",
+                             stop_rounds=5,
                              nfold = 5,
                              nb_epoch=50,
                              var_importance = FALSE)
@@ -96,7 +97,7 @@ rating_prediction = function(filename = "epinions_rating_with_timestamp.mat", ti
                            initial_weight_distribution=initial_weight_distribution,
                            regression_stop = regression_stop,
                            stopping_metric = stopping_metric,
-                           stopping_rounds = regression_stop,
+                           stopping_rounds = stop_rounds,
                            variable_importances = var_importance)
     
     rmse_value = sqrt(dnn@model$validation_metrics@metrics$MSE)
@@ -151,6 +152,7 @@ rating_prediction = function(filename = "epinions_rating_with_timestamp.mat", ti
     plot (dnn)
     dev.off()
     
+    dnn
     # h2o.shutdown(prompt = FALSE)
   }
   
@@ -169,7 +171,7 @@ rating_prediction = function(filename = "epinions_rating_with_timestamp.mat", ti
                            initial_weight_distribution=initial_weight_distribution,
                            regression_stop = regression_stop,
                            stopping_metric = stopping_metric,
-                           stopping_rounds = regression_stop,
+                           stopping_rounds = stop_rounds,
                            variable_importances = var_importance)
     
     rmse_value = sqrt(dnn@model$validation_metrics@metrics$MSE)
@@ -180,6 +182,8 @@ rating_prediction = function(filename = "epinions_rating_with_timestamp.mat", ti
     plot (dnn)
     dev.off()
     # h2o.shutdown(prompt = FALSE)
+    
+    dnn
   }
 }
 
