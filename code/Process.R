@@ -46,7 +46,8 @@ rating_prediction = function(filename = "epinions_rating_with_timestamp.mat", ti
                              stopping_metric="MSE",
                              stopping_tolerance="0.02",
                              nfold = 5,
-                             nb_epoch=50)
+                             nb_epoch=50,
+                             var_importance = FALSE)
 {
   rating = readMat(filename)
   rating = rating$rating
@@ -95,7 +96,8 @@ rating_prediction = function(filename = "epinions_rating_with_timestamp.mat", ti
                            initial_weight_distribution=initial_weight_distribution,
                            regression_stop = regression_stop,
                            stopping_metric = stopping_metric,
-                           stopping_rounds = regression_stop)
+                           stopping_rounds = regression_stop,
+                           variable_importances = var_importance)
     
     rmse_value = sqrt(dnn@model$validation_metrics@metrics$MSE)
     
@@ -167,7 +169,8 @@ rating_prediction = function(filename = "epinions_rating_with_timestamp.mat", ti
                            initial_weight_distribution=initial_weight_distribution,
                            regression_stop = regression_stop,
                            stopping_metric = stopping_metric,
-                           stopping_rounds = regression_stop)
+                           stopping_rounds = regression_stop,
+                           variable_importances = var_importance)
     
     rmse_value = sqrt(dnn@model$validation_metrics@metrics$MSE)
     
