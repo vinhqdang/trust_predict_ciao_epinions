@@ -50,6 +50,7 @@ rating_prediction = function(filename = "epinions_rating_with_timestamp.mat", ti
                              nb_epoch=50,
                              var_importance = FALSE)
 {
+  dnn = NULL
   rating = readMat(filename)
   rating = rating$rating
   
@@ -185,6 +186,8 @@ rating_prediction = function(filename = "epinions_rating_with_timestamp.mat", ti
     
     dnn
   }
+  
+  dnn
 }
 
 trust_prediction = function (filename = "epinion_trust_with_timestamp.mat")
