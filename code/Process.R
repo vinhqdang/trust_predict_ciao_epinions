@@ -127,13 +127,15 @@ rating_prediction = function(filename = "epinions_rating_with_timestamp.mat", ti
     h2o_rate_new_item = as.h2o (rating_new_item)
     p_new = h2o.predict(dnn, newdata = h2o_rate_new_item)
     rmse_value = hydroGOF::rmse(as.vector(rating_new_item$Rating), as.vector(p_new))
+    print (rmse_value)
     
     # only new user
     rating_new_user = test_rating[! (test_rating$User %in% train_rating$User),]
     print ("Only new users")
     h2o_rate_new_item = as.h2o (rating_new_user)
-    p_new = h2o.predict(dnn, newdata = rating_new_user)
+    p_new = h2o.predict(dnn, newdata = h2o_rate_new_item)
     rmse_value = hydroGOF::rmse(as.vector(rating_new_user$Rating), as.vector(p_new))
+    print (rmse_value)
     
     print ("Existing product and users rating prediction")
     # print (sqrt(dnn@model$validation_metrics@metrics$MSE)) 
