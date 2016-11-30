@@ -26,7 +26,7 @@ trustees = df.Trustee
 signs    = df.Sign
 
 for i in range(nrows):
-    print ("Processing line " + str(i + 1) + "/" + str(nrows))
+    print ("Processing line " + str(i + 1) + "/" + str(nrows) + " = " + "{0:.2f}".format(100*float(i+1)/nrows) + "%")
     trustor = df.iat [i,1]
     trustee = df.iat [i,2]
     sign    = df.iat [i,3]
