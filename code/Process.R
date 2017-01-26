@@ -114,8 +114,6 @@ rate_trust_prediction = function (trust_file = "epinion_trust_with_timestamp.mat
                                   nb_epoch=50,
                                   var_importance = FALSE)
 {
-  h2o.init()
-  
   trust_data = readMat(trust_file)
   trust_data = as.data.frame(trust_data$trust)
   colnames (trust_data) = c("Trustor","Trustee","Timestamp")
@@ -212,6 +210,8 @@ perform_learning = function (total_df,
                              nfold = 5,
                              nb_epoch=50,
                              var_importance = FALSE) {
+  h2o.init(nthread = nthread)
+  
   if (eval_way == "division") {
     train = total_df [total_df$timestamp %in% training_periods,]
     test = total_df [total_df$timestamp %in% testing_periods & total_df$Type == "Rating",]
