@@ -42,7 +42,7 @@ rating_prediction = function(filename = "epinions_rating_with_timestamp.mat", ti
                              l1 = 0.00001,
                              l2 = 1e-5,
                              initial_weight_distribution="Uniform",
-                             regression_stop = 0.01,
+                             regression_stop = 0.90,
                              stopping_metric="MSE",
                              stopping_tolerance="0.02",
                              stop_rounds=5,
@@ -66,27 +66,161 @@ rating_prediction = function(filename = "epinions_rating_with_timestamp.mat", ti
     rating$Timestamp = sapply(rating$Timestamp, FUN=convert_time_stamp)
   }
   
-  if (evaluation_method == "division") {
-    train_rating = rating [rating$Timestamp %in% training_periods,]
-    test_rating = rating [rating$Timestamp %in% testing_periods,]
+  dnn = perform_learning (total_df = rating,
+                          eval_way = evaluation_method,
+                          hiddens = hiddens,
+                          training_periods = training_periods,
+                          testing_periods = testing_periods,
+                          max_mem_size = max_mem_size,
+                          nthread = nthread,
+                          learning_rate = learning_rate,
+                          activation_func = activation_func,
+                          dropout_ratio = dropout_ratio,
+                          l1 = l1,
+                          l2 = l2,
+                          initial_weight_distribution = initial_weight_distribution,
+                          regression_stop = 0.9,
+                          stopping_metric = stopping_metric,
+                          stopping_tolerance = stopping_tolerance,
+                          stop_rounds = stop_rounds,
+                          nfold = nfold,
+                          nb_epoch = nb_epoch,
+                          var_importance = var_importance)
+  
+  dnn
+}
+
+# rating prediction with trust information
+rate_trust_prediction = function (trust_file = "epinion_trust_with_timestamp.mat",
+                                  rating_file = "epinions_rating_with_timestamp.mat",
+                                  time_point = TRUE, 
+                                  hiddens = c(200,200),
+                                  evaluation_method = "division",
+                                  training_periods = 1:10,
+                                  testing_periods = c(11),
+                                  max_mem_size = "8g",
+                                  nthread = 0,
+                                  learning_rate=0.001,
+                                  activation_func="RectifierWithDropout",
+                                  dropout_ratio = 0.5,
+                                  l1 = 0.00001,
+                                  l2 = 1e-5,
+                                  initial_weight_distribution="Uniform",
+                                  regression_stop = 0.90,
+                                  stopping_metric="MSE",
+                                  stopping_tolerance="0.02",
+                                  stop_rounds=5,
+                                  nfold = 5,
+                                  nb_epoch=50,
+                                  var_importance = FALSE)
+{
+  h2o.init()
+  
+  trust_data = readMat(trust_file)
+  trust_data = as.data.frame(trust_data$trust)
+  colnames (trust_data) = c("Trustor","Trustee","Timestamp")
+  
+  rating = readMat(rating_file)
+  rating = rating$rating
+  
+  rating = as.data.frame(rating)
+  
+  colnames(rating) = c("User","Product","Category","Rating","Helpfulnesss","Timestamp")
+  
+  rating$User = rating$User + max(rating$Product) + 1000
+  trust_data$Trustor = trust_data$Trustor + max(rating$Product) + 1000
+  
+  rating$User = as.factor(rating$User)
+  # rating$V2 = as.factor(rating$V2)
+  rating$Category = as.factor(rating$Category)
+  
+  if (time_point == FALSE) {
+    rating$Timestamp = sapply(rating$Timestamp, FUN=convert_time_stamp)
+  }
+  
+  # set category for friend
+  friend_category = max(as.integer(rating$Category)) + 1
+  
+  trust_data$Rating = 5
+  trust_data$Category = friend_category
+  
+  # reorder the columns
+  trust = trust_data[,c(1,2,5,4,3)]
+  
+  # remove helpfulness
+  rating$Helpfulnesss = NULL
+  
+  # unify col names
+  colnames(rating) = c("src","dst","category","rating","timestamp")
+  colnames(trust) = c("src","dst","category","rating","timestamp")
+  
+  # temporary switch category to integer
+  rating$category = as.integer(rating$category)
+  
+  # add Type col to recognize after merge
+  rating$Type = "Rating"
+  trust$Type = "Trust"
+  
+  # create a big dataframe
+  total_df = rbind (rating, trust)
+  
+  total_df$category = as.factor(total_df$category)
+  total_df$Type = as.factor(total_df$Type)
+  
+  dnn = perform_learning (total_df = total_df,
+                          eval_way = evaluation_method,
+                          hiddens = hiddens,
+                          training_periods = training_periods,
+                          testing_periods = testing_periods,
+                          max_mem_size = max_mem_size,
+                          nthread = nthread,
+                          learning_rate = learning_rate,
+                          activation_func = activation_func,
+                          dropout_ratio = dropout_ratio,
+                          l1 = l1,
+                          l2 = l2,
+                          initial_weight_distribution = initial_weight_distribution,
+                          regression_stop = 0.9,
+                          stopping_metric = stopping_metric,
+                          stopping_tolerance = stopping_tolerance,
+                          stop_rounds = stop_rounds,
+                          nfold = nfold,
+                          nb_epoch = nb_epoch,
+                          var_importance = var_importance)
     
-    # require (plotrix)
-    # multhist(list (train_rating$Rating, test_rating$Rating), 
-    # breaks=seq(0.5,5.5,by=1),probability=TRUE, ylab="Proportion",
-    # xlab = "Rating score of train (black) and test (grey) data set.")
+  dnn
+}
+
+perform_learning = function (total_df,
+                             eval_way = "division",
+                             plot_file = "plot.png",
+                             hiddens = c(200,200),
+                             training_periods = 1:10,
+                             testing_periods = c(11),
+                             max_mem_size = "8g",
+                             nthread = 0,
+                             learning_rate=0.001,
+                             activation_func="RectifierWithDropout",
+                             dropout_ratio = 0.5,
+                             l1 = 0.00001,
+                             l2 = 1e-5,
+                             initial_weight_distribution="Uniform",
+                             regression_stop = 0.90,
+                             stopping_metric="MSE",
+                             stopping_tolerance="0.02",
+                             stop_rounds=5,
+                             nfold = 5,
+                             nb_epoch=50,
+                             var_importance = FALSE) {
+  if (eval_way == "division") {
+    train = total_df [total_df$timestamp %in% training_periods,]
+    test = total_df [total_df$timestamp %in% testing_periods & total_df$Type == "Rating",]
     
-    # for 11 time frames in 1 plot
-    # for (i in 1:11) {l[[i]] = rating[rating$Timestamp==i,]$Rating}
-    # multhist(l, breaks=seq(0.5,5.5,by=1),probability=TRUE, 
-    # ylab="Proportion",xlab = "Rating score over 11 time frames")
-    
-    localH20 = h2o.init(nthreads = nthread, max_mem_size = max_mem_size)
-    
-    train_rating_h2o = as.h2o (train_rating)
-    test_rating_h2o = as.h2o (test_rating)
+    train_rating_h2o = as.h2o (train)
+    test_rating_h2o = as.h2o (test)
     
     print ("All data")
-    dnn = h2o.deeplearning(x=c(1:3,5:6),y=4, training_frame = train_rating_h2o, 
+    dnn = h2o.deeplearning(x=c(1:3,5),y=4, training_frame = train_rating_h2o, 
                            activation = activation_func,
                            validation_frame = test_rating_h2o,
                            hidden = hiddens,
@@ -101,12 +235,15 @@ rating_prediction = function(filename = "epinions_rating_with_timestamp.mat", ti
                            stopping_rounds = stop_rounds,
                            variable_importances = var_importance)
     
+    png (plot_file)
+    plot (dnn)
+    dev.off()
+    
     rmse_value = sqrt(dnn@model$validation_metrics@metrics$MSE)
     
     # print (ci.rmsea(rmsea = rmse_value, df = nrow(test_rating) - 1, N = nrow(test_rating)))
     
     print (rmse_value) # 1.026661
-    
     
     # Product never been rated
     rating_new = test_rating[! (test_rating$Product %in% train_rating$Product 
@@ -148,20 +285,13 @@ rating_prediction = function(filename = "epinions_rating_with_timestamp.mat", ti
     
     # print (ci.rmsea(rmsea = rmse_value, df = nrow(rating_old) - 1, N = nrow(rating_old)))
     print (rmse_value)
-    
-    png ("plot.png")
-    plot (dnn)
-    dev.off()
-    
-    dnn
-    # h2o.shutdown(prompt = FALSE)
   }
   
-  if (evaluation_method == "LOO") {
+  if (eval_way == "LOO") {
     localH20 = h2o.init(nthreads = -1)
-    rating_h2o = as.h2o (rating)
+    rating_h2o = as.h2o (total_df)
     
-    dnn = h2o.deeplearning(x=c(1:3,5:6),y=4,
+    dnn = h2o.deeplearning(x=c(1:3,5),y=4,
                            training_frame = rating_h2o, nfolds = nfold, hidden = hiddens,
                            activation = activation_func,
                            epochs = nb_epoch,
@@ -179,7 +309,7 @@ rating_prediction = function(filename = "epinions_rating_with_timestamp.mat", ti
     
     print (rmse_value)
     
-    png ("plot.png")
+    png (plot_file)
     plot (dnn)
     dev.off()
     # h2o.shutdown(prompt = FALSE)
@@ -188,34 +318,4 @@ rating_prediction = function(filename = "epinions_rating_with_timestamp.mat", ti
   }
   
   dnn
-}
-
-trust_prediction = function (filename = "epinion_trust_with_timestamp.mat")
-{
-  h2o.init()
-  
-  trust_data = readMat(filename)
-  trust_data = as.data.frame(trust_data$trust)
-  colnames (trust_data) = c("Trustor","Trustee","Timestamp")
-  
-  trust_train = trust_data [trust_data$Timestamp != 11,]
-  trust_test = trust_data [trust_data$Timestamp == 11,]
-  
-  h2o_trust_train = as.h2o (trust_train)
-  h2o_trust_test = as.h2o (trust_test)
-  
-  # dnn = h2o.deeplearning(x=1:2,y=3,training_frame = h2o_trust_train, validation_frame = h2o_trust_test)
-  
-  rating = readMat("epinions_rating_with_timestamp.mat")
-  rating = rating$rating
-  
-  rating = as.data.frame(rating)
-  
-  colnames(rating) = c("User","Product","Category","Rating","Helpfulnesss","Timestamp")
-  
-  rating$User = as.factor(rating$User)
-  # rating$V2 = as.factor(rating$V2)
-  rating$Category = as.factor(rating$Category)
-  
-  h2o.shutdown(prompt = TRUE)
 }
