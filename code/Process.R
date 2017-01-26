@@ -210,7 +210,7 @@ perform_learning = function (total_df,
                              nfold = 5,
                              nb_epoch=50,
                              var_importance = FALSE) {
-  h2o.init(nthread = nthread)
+  h2o.init(nthread = nthread, max_mem_size = max_mem_size)
   
   if (eval_way == "division") {
     train = total_df [total_df$timestamp %in% training_periods,]
