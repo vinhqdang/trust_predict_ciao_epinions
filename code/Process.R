@@ -66,6 +66,10 @@ rating_prediction = function(filename = "epinions_rating_with_timestamp.mat", ti
     rating$Timestamp = sapply(rating$Timestamp, FUN=convert_time_stamp)
   }
   
+  rating$Helpfulnesss = NULL
+  colnames(rating) = c("src","dst","category","rating","timestamp")
+  rating$Type = "Rating"
+  
   dnn = perform_learning (total_df = rating,
                           eval_way = evaluation_method,
                           hiddens = hiddens,
@@ -246,8 +250,8 @@ perform_learning = function (total_df,
     print (rmse_value) # 1.026661
     
     # Product never been rated
-    rating_new = test_rating[! (test_rating$Product %in% train_rating$Product 
-                                & test_rating$User %in% train_rating$User),]
+    rating_new = test[! (test$src %in% traintrain[train$Type == "Rating,"]$src 
+                                & test$dst %in% traintrain[train$Type == "Rating,"]$dst),]
     h2o_rate_new = as.h2o (rating_new)
     
     print ("Cold start prediction")
@@ -258,12 +262,12 @@ perform_learning = function (total_df,
     print (rmse_value)
     
     # Contain product which are already rated before
-    rating_old = test_rating[test_rating$Product %in% train_rating$Product 
-                             & test_rating$User %in% train_rating$User,]
+    rating_old = test_rating[test$src %in% train[train$Type == "Rating,"]$src 
+                             & test$dst %in% train[train$Type == "Rating,"]$dst,]
     h2o_rate_old = as.h2o (rating_old)
     
     # only new item
-    rating_new_item = test_rating[! (test_rating$Product %in% train_rating$Product),]
+    rating_new_item = test[!test$dst %in% train[train$Type == "Rating,"]$dst,]
     print ("Only new items")
     h2o_rate_new_item = as.h2o (rating_new_item)
     p_new = h2o.predict(dnn, newdata = h2o_rate_new_item)
@@ -273,8 +277,8 @@ perform_learning = function (total_df,
     # only new user
     rating_new_user = test_rating[! (test_rating$User %in% train_rating$User),]
     print ("Only new users")
-    h2o_rate_new_item = as.h2o (rating_new_user)
-    p_new = h2o.predict(dnn, newdata = h2o_rate_new_item)
+    h2o_rate_new_user = as.h2o (rating_new_user)
+    p_new = h2o.predict(dnn, newdata = h2o_rate_new_user)
     rmse_value = hydroGOF::rmse(as.vector(rating_new_user$Rating), as.vector(p_new))
     print (rmse_value)
     
