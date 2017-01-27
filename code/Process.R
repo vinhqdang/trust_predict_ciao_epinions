@@ -250,8 +250,8 @@ perform_learning = function (total_df,
     print (rmse_value) # 1.026661
     
     # Product never been rated
-    rating_new = test[! (test$src %in% traintrain[train$Type == "Rating,"]$src 
-                                & test$dst %in% traintrain[train$Type == "Rating,"]$dst),]
+    rating_new = test[! (test$src %in% train[train$Type == "Rating,"]$src 
+                                & test$dst %in% train[train$Type == "Rating,"]$dst),]
     h2o_rate_new = as.h2o (rating_new)
     
     print ("Cold start prediction")
