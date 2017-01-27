@@ -36,10 +36,14 @@ wherein:
 
 ## Implementation
 
-You should install [R>=3.3.2](r-project.org)
+You should install [R >= 3.3.2](r-project.org)
 
 ``
-R
 source ("Process.R")
 ``
+
+Two functions are provided:
+
+- ``rating_prediction``: predict without trust information.
+- ``rate_trust_prediction``: predict with trust information.
 
