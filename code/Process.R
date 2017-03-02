@@ -4,7 +4,7 @@
 # # library(MBESS)
 
 if (!require("pacman")) install.packages("pacman")
-pacman::p_load(R.matlab, h2o, hydroGOF)
+pacman::p_load(R.matlab, h2o, hydroGOF, scales)
 
 #convert timestamp of Ciao dataset to 11 values
 convert_time_stamp = function(time_stamp) 
@@ -322,4 +322,43 @@ perform_learning = function (total_df,
   }
   
   dnn
+}
+
+# some utility functions
+
+# display a histogram of input vector with percentage in y-axis
+percentage_hist = function (x) {
+  h = hist(x)
+  h$density = h$counts/sum(h$counts)*100
+  plot(h,freq=FALSE, ylab = "Percentage", xlab = "Rating Score", main = "")
+}
+
+hist0 <- function(...,col='skyblue',border=T) hist(...,col=col,border=border) 
+
+# display side by side histogram
+multi_hist <- function (x1, x2, 
+                        group1 = "Epinions", group2 = "Ciao") {
+  dat1 = data.frame(x=x1, dataset=group1)
+  dat2 = data.frame(x=x2, dataset=group2)
+  dat = rbind(dat1, dat2)
+  
+  ggplot(dat, aes(x, fill=dataset, colour=dataset)) +
+    geom_histogram(aes(y=2*(..density..)/sum(..density..)), breaks=seq(0.5,5.5,0.25), 
+                   alpha=0.6, 
+                   position="identity", lwd=0.2) +
+    ggtitle("") +
+    scale_y_continuous(labels=percent_format()) +
+    ylab("Frequency") + xlab("Rating score") +
+    theme(axis.text=element_text(size=14),
+          axis.title=element_text(size=16,face="bold"),
+          legend.text=element_text(size=16))
+}
+
+# how to use multihist
+# multi_hist(epinions$Rating, ciao$Rating+0.25)
+
+# process Massa dataset
+rating_predit_massa = function () {
+  trust = read.table("trust_data_massa.txt", skip = 2, sep = " ")
+  rating = read.table("ratings_data_massa.txt", skip = 2, sep = " ", skipNul = TRUE)
 }
