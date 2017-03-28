@@ -5,6 +5,8 @@ In this study, we aim to predict the rating scores of a user to an item, given t
 - Rating dataset.
 - Trust dataset.
 
+We showed that, a simple deep feed-forward neural network [1] can perform well in predicting rating score, better than other complex existing models in literature.
+
 ## Datasets
 
 ### Rating dataset
@@ -34,16 +36,44 @@ wherein:
 - u3: timestamp when the relation is declared
 - v: value (trust/distrust)
 
-## Implementation
+### Combined dataset
 
-You should install [R >= 3.3.2](r-project.org)
+The idea is to combine rating and trust dataset, by considering that, a trust relation is a rating of ``5`` from a user to another user.
 
-``
-source ("Process.R")
-``
+## Training & Predicting
 
-Two functions are provided:
+You should install [R >= 3.3.2](r-project.org). Currently the neural network is built by [h2o](https://www.h2o.ai/), but I plan to update the code to run with [mxnet](http://vinhqdang.github.io/2017/03/23/deep-learning-in-r). However there is no concrete roadmap.
 
-- ``rating_prediction``: predict without trust information.
-- ``rate_trust_prediction``: predict with trust information.
+```{r}
+install.packages ("h2o") # will take a while, be patient.
+								# h2o requires JDK, please install JDK first
+# init h2o server
+h2o.init ()
 
+# load data
+# some datasets are provided in MAT format, use R.matlab instead
+rating <- read.table (...)
+trust <- read.table (...)
+
+# combine dataset
+trust$score <- 5
+combine_data <- rbind (rating, trust)
+
+# building the model
+my_model <- h2o.deeplearning (x=1:3,y=4,hiddens = c(2048,1024),...)
+# there are a lot of hyper-parameters for tuning. 
+# deep learning model is known as sensitive for these hyper-parameters, so be careful.
+
+# predicting
+pre <- h2o.predict (my_model, test)
+rmse (pre$predict, test$score)
+
+```
+
+You can refer to the file ``Process.R`` for some reference code.
+
+With a few lines of code, the RMSE and MAE of the predicting scores are better than existing methods, such as eTrust (2012), mTrust (2012), TrustSVD (2016).
+
+# References
+
+[1] Deep Learning (2016), MIT Press. Ian Goodfellow et al. [http://www.deeplearningbook.org/](http://www.deeplearningbook.org/) 

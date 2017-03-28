@@ -321,6 +321,11 @@ perform_learning = function (total_df,
     dnn
   }
   
+  pre <- h2o.predict (dnn, test_rating_h2o)
+  
+  print ("RMSE value of the model = ")
+  rmse (as.vector(pre$predict), test$rating)
+  
   dnn
 }
 
@@ -336,7 +341,7 @@ percentage_hist = function (x) {
 hist0 <- function(...,col='skyblue',border=T) hist(...,col=col,border=border) 
 
 # display side by side histogram
-multi_hist <- function (x1, x2, 
+multi_hist2 <- function (x1, x2, 
                         group1 = "Epinions", group2 = "Ciao") {
   dat1 = data.frame(x=x1, dataset=group1)
   dat2 = data.frame(x=x2, dataset=group2)
@@ -357,8 +362,70 @@ multi_hist <- function (x1, x2,
 # how to use multihist
 # multi_hist(epinions$Rating, ciao$Rating+0.25)
 
+# 3 histograms side by side
+multi_hist3 <- function (x1, x2, x3,
+                         group1 = "Epinions1", group2 = "Epinions2", group3 = "Ciao") {
+  
+  max_value = max (max(x1), max(x2), max(x3))
+  min_value = min (min(x1), min(x2), min(x3))
+  
+  x_range = seq (min_value - 0.5, max_value + 0.5, 0.2)
+  
+  # shift the data so they won't overlap
+  x1 = x1-0.3
+  x2 = x2-0.1
+  x3 = x3+0.1
+  
+  library(ggplot2)
+  dat1 = data.frame(x=x1, dataset=group1)
+  dat2 = data.frame(x=x2, dataset=group2)
+  dat3 = data.frame(x=x2, dataset=group3)
+  dat = rbind(dat1, dat2, dat3)
+  
+  
+  
+  ggplot(dat, aes(x, fill=dataset, colour=dataset)) +
+    geom_histogram(aes(y=2*(..density..)/sum(..density..)), 
+                   breaks=x_range,
+                   alpha=0.6, 
+                   position="identity", lwd=0.2) +
+    ggtitle("") +
+    scale_y_continuous(labels=percent_format()) +
+    ylab("Frequency") + xlab("Rating score") +
+    theme(axis.text=element_text(size=14),
+          axis.title=element_text(size=16,face="bold"),
+          legend.text=element_text(size=16)) 
+}
+
 # process Massa dataset
 rating_predit_massa = function () {
   trust = read.table("trust_data_massa.txt", skip = 2, sep = " ")
   rating = read.table("ratings_data_massa.txt", skip = 2, sep = " ", skipNul = TRUE)
+}
+
+count_occurences =function (input_vector) {
+  res = c()
+  for (x in unique (input_vector)) {
+    res = c(res, length(which(input_vector==x)))
+  }
+  res
+}
+
+# count trustor distribution of 3 datasets
+trustor_dist = function () {
+  epi1 = read.table("trust_data_massa.txt", skip = 2, skipNul = TRUE)
+  epi2 = as.data.frame(readMat("epinion_trust_with_timestamp.mat")$trust)
+  ciao = as.data.frame(readMat("ciao_trust.mat")$trust)
+  
+  epi1_trustor = count_occurences(epi1$V1)
+  epi2_trustor = count_occurences(epi2$V1)
+  ciao_trustor = count_occurences(ciao$V1)
+}
+
+mean_baseline = function (rating_data, item_id) {
+  predict_rate = mean (rating_data$Rating)
+  if (item_id %in% rating_data$Product) {
+    predict_rate = mean (rating_data[rating_data$Product == item_id,]$Rating)
+  }
+  predict_rate
 }
