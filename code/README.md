@@ -72,7 +72,7 @@ rmse (pre$predict, test$score)
 
 You can refer to the file ``Process.R`` for some reference code.
 
-With a few lines of code, the RMSE and MAE of the predicting scores are better than existing methods, such as eTrust (2012), mTrust (2012), TrustSVD (2016).
+With a few lines of code, the RMSE and MAE of the predicting scores are better than existing methods, such as mTrust (2012), eTrustRec (2015), TrustSVD (2016).
 
 # References
 
