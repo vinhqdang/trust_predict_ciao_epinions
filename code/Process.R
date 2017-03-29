@@ -364,7 +364,9 @@ multi_hist2 <- function (x1, x2,
 
 # 3 histograms side by side
 multi_hist3 <- function (x1, x2, x3,
-                         group1 = "Epinions1", group2 = "Epinions2", group3 = "Ciao") {
+                         group1 = "Epinions1", group2 = "Epinions2", group3 = "Ciao",
+                         xlab_text = "Rating Score")
+  {
   
   max_value = max (max(x1), max(x2), max(x3))
   min_value = min (min(x1), min(x2), min(x3))
@@ -391,7 +393,7 @@ multi_hist3 <- function (x1, x2, x3,
                    position="identity", lwd=0.2) +
     ggtitle("") +
     scale_y_continuous(labels=percent_format()) +
-    ylab("Frequency") + xlab("Rating score") +
+    ylab("Frequency") + xlab(xlab_text) +
     theme(axis.text=element_text(size=14),
           axis.title=element_text(size=16,face="bold"),
           legend.text=element_text(size=16)) 
