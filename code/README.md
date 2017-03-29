@@ -77,3 +77,9 @@ With a few lines of code, the RMSE and MAE of the predicting scores are better t
 # References
 
 [1] Deep Learning (2016), MIT Press. Ian Goodfellow et al. [http://www.deeplearningbook.org/](http://www.deeplearningbook.org/) 
+
+[2] Tang, Jiliang, Huiji Gao, and Huan Liu. "mTrust: discerning multi-faceted trust in a connected world." WSDM. ACM, 2012.
+
+[3] Tang, Jiliang, et al. "Trust evolution: Modeling and its applications." IEEE Transactions on Knowledge and Data Engineering 27.6 (2015): 1724-1738.
+
+[4] Guo, Guibing, Jie Zhang, and Neil Yorke-Smith. "A novel recommendation model regularized with user trust and item ratings." IEEE Transactions on Knowledge and Data Engineering 28.7 (2016): 1607-1620.
