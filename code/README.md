@@ -56,8 +56,14 @@ rating <- read.table (...)
 trust <- read.table (...)
 
 # combine dataset
+rating[[2]] <- rating[[2]] + max (max (trust[[1]]), trust[[2]]) + 1
 trust$score <- 5
 combine_data <- rbind (rating, trust)
+
+# set categorical variables
+colnames (combine_data) <- c("Link Source","Link Destination","Timestamp","Link Value")
+combine_data[[1]] <- as.factor (combine_data[[1]])
+combine_data[[2]] <- as.factor (combine_data[[2]])
 
 # building the model
 my_model <- h2o.deeplearning (x=1:3,y=4,hiddens = c(2048,1024),...)
