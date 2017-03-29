@@ -379,7 +379,7 @@ multi_hist3 <- function (x1, x2, x3,
   library(ggplot2)
   dat1 = data.frame(x=x1, dataset=group1)
   dat2 = data.frame(x=x2, dataset=group2)
-  dat3 = data.frame(x=x2, dataset=group3)
+  dat3 = data.frame(x=x3, dataset=group3)
   dat = rbind(dat1, dat2, dat3)
   
   
